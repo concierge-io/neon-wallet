@@ -1,7 +1,6 @@
 // @flow
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-
 import LoginPrivateKey from './LoginPrivateKey'
 import { loginWithPrivateKey } from '../../modules/account'
 

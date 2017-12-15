@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Login renders without crashing 1`] = `
-<div
+<Page
   className="loginPage"
   id="loginPage"
 >
@@ -10,28 +10,29 @@ exports[`Login renders without crashing 1`] = `
   >
     Login using a private key:
   </div>
-  <form
-    onSubmit={[Function]}
+  <div
+    className="loginForm"
   >
-    <div
-      className="loginForm"
+    <input
+      autoFocus={true}
+      onChange={[Function]}
+      placeholder="Enter your private key here (WIF)"
+      type="password"
+    />
+    <FaEye
+      className="viewKey"
+      onClick={[Function]}
+    />
+  </div>
+  <div>
+    <button
+      className="disabled"
+      disabled={true}
+      onClick={[Function]}
     >
-      <PasswordField
-        autoFocus={true}
-        onChange={[Function]}
-        placeholder="Enter your private key here (WIF)"
-      />
-    </div>
-    <div>
-      <button
-        className="disabled"
-        disabled={true}
-        type="submit"
-      >
-        Login
-      </button>
-      <HomeButtonLink />
-    </div>
-  </form>
-</div>
+      Login
+    </button>
+    <HomeButtonLink />
+  </div>
+</Page>
 `;

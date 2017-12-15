@@ -1,59 +1,57 @@
 @import '../../styles/variables';
 
-.container {
-    height: 100%;
-}
-
-.walletButtons {
-    display: flex;
-    padding-bottom: 20px;
-}
-
-.walletButton {
-    width: 50%;
-    padding: 9px;
-    color: #fff;
-    font-size: 1.2em;
+.title {
+    font-size: 1em;
+    padding: 10px 0px 0px 10px;
     font-weight: 200;
-    background-color: $default-button;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    &:hover {
-        background-color: $default-button-hover;
+    color: $thin-text-color;
+    img {
+        position: relative;
+        top: 2px;
     }
 }
 
-.sendButton {
-    margin-right: 10px;
+.height,
+.version {
+    .grey {
+        opacity: .6;
+        margin-right: 4px;
+    }
+    .darker {
+        color: $thin-text-color;
+        opacity: .8;
+        cursor: pointer;
+    }
 }
 
-.walletButtonText {
-    padding-left: 5px;
+.height {
+    position: absolute;
+    font-size: .8em;
+    right: 340px;
+    top: 13px;
+    opacity: 0.6;
 }
 
-.walletButtonIcon {
-    font-size: 1.1em;
+.version {
+    position: absolute;
+    font-size: .8em;
+    right: 230px;
+    top: 13px;
+    opacity: 0.6;
 }
 
-.content {
-    display: flex;
-    height: 100%;
-}
-
-.contentBox {
-    width: 50%;
-}
-
-.transactionHistory {
-    border-left: 1.5px solid #efefef;
-}
-
-.buttonContainer {
+.send {
     text-align: center;
     width: 100%;
     padding: 16px 0px;
     font-weight: 200;
     font-size: 1.2em;
 }
+
+.upArrow {
+    position: relative;
+    font-size: 1.4em;
+    top: -3px;
+    left: -1px;
+}
+

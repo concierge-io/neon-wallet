@@ -1,34 +1,27 @@
 // @flow
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-
-import { logout, getAddress, getIsHardwareLogin } from '../../modules/account'
-import { getBlockExplorer, getNetwork } from '../../modules/metadata'
-import { getNotifications, showErrorNotification } from '../../modules/notifications'
-import { getNEO, getGAS, getTokens, getIsLoaded, loadWalletData } from '../../modules/wallet'
-import { showModal } from '../../modules/modal'
-import { sendTransaction } from '../../modules/transactions'
-
 import Dashboard from './Dashboard'
+import { togglePane, getSendPane, getConfirmPane } from '../../modules/dashboard'
+import { logout, getAddress } from '../../modules/account'
+import { getBlockHeight, getNetwork } from '../../modules/metadata'
+import { getNotifications } from '../../modules/notifications'
+import { getNeoPrice, getGasPrice } from '../../modules/wallet'
 
 const mapStateToProps = (state: Object) => ({
+  sendPane: getSendPane(state),
+  confirmPane: getConfirmPane(state),
+  blockHeight: getBlockHeight(state),
   net: getNetwork(state),
   address: getAddress(state),
-  notification: getNotifications(state),
-  NEO: getNEO(state),
-  GAS: getGAS(state),
-  tokens: getTokens(state),
-  loaded: getIsLoaded(state),
-  explorer: getBlockExplorer(state),
-  isHardwareLogin: getIsHardwareLogin(state)
+  neoPrice: getNeoPrice(state),
+  gasPrice: getGasPrice(state),
+  notification: getNotifications(state)
 })
 
 const actionCreators = {
-  logout,
-  showModal,
-  showErrorNotification,
-  sendTransaction,
-  loadWalletData
+  togglePane,
+  logout
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators(actionCreators, dispatch)

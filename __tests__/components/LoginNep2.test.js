@@ -5,10 +5,9 @@ import { BrowserRouter } from 'react-router-dom'
 import thunk from 'redux-thunk'
 import { shallow, mount } from 'enzyme'
 import { createMemoryHistory } from 'history'
-
 import LoginNep2 from '../../app/containers/LoginNep2'
+import { decryptWIF } from 'neon-js'
 import { SHOW_NOTIFICATION, HIDE_NOTIFICATIONS, HIDE_NOTIFICATION, DEFAULT_POSITION } from '../../app/modules/notifications'
-import { LOGIN } from '../../app/modules/account'
 import { NOTIFICATION_LEVELS } from '../../app/core/constants'
 
 jest.useFakeTimers()
@@ -46,18 +45,13 @@ describe('LoginNep2', () => {
   test('renders correctly with initial state', (done) => {
     const { wrapper } = setup(false)
 
-    const fields = wrapper.find('input[type="password"]')
-    expect(fields.length).toEqual(2)
+    const passwordField = wrapper.find('input[type="password"]')
+    const keyField = wrapper.find('input[type="text"]')
 
-    const passwordField = fields.get(0)
-    const keyField = fields.get(1)
-
-    expect(passwordField.props.value).toEqual('')
-    expect(passwordField.props.placeholder).toEqual('Enter your passphrase here')
-    expect(passwordField.props.type).toEqual('password')
-    expect(keyField.props.value).toEqual('')
-    expect(keyField.props.placeholder).toEqual(('Enter your encrypted key here'))
-    expect(keyField.props.type).toEqual('password')
+    expect(passwordField.text()).toEqual('')
+    expect(passwordField.html().includes('Enter your passphrase here')).toEqual(true)
+    expect(keyField.text()).toEqual('')
+    expect(keyField.html().includes('Enter your encrypted key here')).toEqual(true)
     done()
   })
   test('the login button is working correctly with no passphrase or wif', (done) => {
@@ -109,11 +103,12 @@ describe('LoginNep2', () => {
     keyField.instance().value = '6PYUGtvXiT5TBetgWf77QyAFidQj61V8FJeFBFtYttmsSxcbmP4vCFRCWu'
     keyField.simulate('change')
 
-    wrapper.find('.loginButton').simulate('submit')
-    Promise.resolve('Pause').then().then()
+    wrapper.find('.loginButton').simulate('click')
     jest.runAllTimers()
     const actions = store.getActions()
-    expect(actions.length).toEqual(4)
+    expect(actions.length).toEqual(2)
+    expect(decryptWIF.mock.calls.length).toBe(1)
+    expect(decryptWIF.mock.calls[0][0]).toBe('6PYUGtvXiT5TBetgWf77QyAFidQj61V8FJeFBFtYttmsSxcbmP4vCFRCWu')
     expect(actions[0]).toEqual({
       type: HIDE_NOTIFICATIONS,
       payload: {
@@ -128,13 +123,6 @@ describe('LoginNep2', () => {
         level: NOTIFICATION_LEVELS.INFO
       })
     })
-    expect(actions[2]).toEqual({
-      type: HIDE_NOTIFICATION,
-      payload: expect.objectContaining({
-        id: 'notification_1'
-      })
-    })
-    expect(actions[3]).toHaveProperty('type', LOGIN)
     done()
   })
 })

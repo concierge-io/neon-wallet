@@ -1,10 +1,8 @@
 // @flow
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-
-import { ledgerNanoSGetLogin, ledgerNanoSGetInfoAsync, getPublicKey, getHardwareDeviceInfo, getHardwarePublicKeyInfo } from '../../modules/account'
-
 import LoginLedgerNanoS from './LoginLedgerNanoS'
+import { ledgerNanoSGetLogin, ledgerNanoSGetInfoAsync, getPublicKey, getHardwareDeviceInfo, getHardwarePublicKeyInfo } from '../../modules/account'
 
 const mapStateToProps = (state: Object) => ({
   publicKey: getPublicKey(state),

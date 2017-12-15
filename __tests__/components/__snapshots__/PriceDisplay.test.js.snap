@@ -2,42 +2,42 @@
 
 exports[`PriceDisplay renders and shows prices 1`] = `
 <PriceDisplay
-  currencyCode="usd"
   gasPrice={18.1}
   neoPrice={25.48}
 >
   <div
-    className="navBarItem"
-    id="neoPrice"
-    key="neoPriceDisplay"
+    className="container"
   >
     <span
-      className="navBarItemLabel"
+      className="neoPriceDisplay"
+      id="neoPrice"
     >
-      NEO
+      <span
+        className="label"
+      >
+        NEO
+      </span>
+      <span
+        className="price price"
+      >
+        $
+        25.48
+      </span>
     </span>
     <span
-      className="price"
+      id="gasPrice"
     >
-      $
-      25.48
-    </span>
-  </div>
-  <div
-    className="navBarItem"
-    id="gasPrice"
-    key="gasPriceDisplay"
-  >
-    <span
-      className="navBarItemLabel"
-    >
-      GAS
-    </span>
-    <span
-      className="price"
-    >
-      $
-      18.10
+      <span
+        className="label"
+      >
+        GAS
+      </span>
+      <span
+        className="price price"
+      >
+        $
+        18.10
+      </span>
     </span>
   </div>
 </PriceDisplay>

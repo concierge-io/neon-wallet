@@ -1,10 +1,10 @@
 // @flow
 import React, { Component } from 'react'
-import classNames from 'classnames'
-
+import FaEye from 'react-icons/lib/fa/eye'
+import FaEyeSlash from 'react-icons/lib/fa/eye-slash'
+import Page from '../../components/Page'
 import HomeButtonLink from '../../components/HomeButtonLink'
-import PasswordField from '../../components/PasswordField'
-
+import classNames from 'classnames'
 import loginStyles from '../../styles/login.scss'
 
 type Props = {
@@ -13,47 +13,59 @@ type Props = {
 }
 
 type State = {
-  encryptedWIF: string,
+  showKey: boolean,
+  wif: string,
   passphrase: string
 }
 
 export default class LoginNep2 extends Component<Props, State> {
   state = {
-    encryptedWIF: '',
+    showKey: false,
+    wif: '',
     passphrase: ''
+  }
+
+  toggleKeyVisibility = () => {
+    this.setState(prevState => ({
+      showKey: !prevState.showKey
+    }))
   }
 
   render () {
     const { loginNep2, history } = this.props
-    const { encryptedWIF, passphrase } = this.state
-    const loginButtonDisabled = encryptedWIF === '' || passphrase === ''
+    const { showKey, wif, passphrase } = this.state
+    const loginButtonDisabled = wif === '' || passphrase === ''
 
     return (
-      <div id='loginPage' className={loginStyles.loginPage}>
+      <Page id='loginPage' className={loginStyles.loginPage}>
         <div className={loginStyles.title}>Login using an encrypted key:</div>
-        <form onSubmit={(e) => { e.preventDefault(); loginNep2(passphrase, encryptedWIF, history) }}>
-          <div className={loginStyles.loginForm}>
-            <PasswordField
-              placeholder='Enter your passphrase here'
-              onChange={(e) => this.setState({ passphrase: e.target.value })}
-              value={passphrase}
-              autoFocus
-            />
-            <PasswordField
-              placeholder='Enter your encrypted key here'
-              onChange={(e) => this.setState({ encryptedWIF: e.target.value })}
-              value={encryptedWIF}
-            />
-          </div>
-          <div>
-            <button
-              type='submit'
-              className={classNames('loginButton', { disabled: loginButtonDisabled })}
-              disabled={loginButtonDisabled}>Login</button>
-            <HomeButtonLink />
-          </div>
-        </form>
-      </div>
+        <div className={loginStyles.loginForm}>
+          <input
+            type={showKey ? 'text' : 'password'}
+            placeholder='Enter your passphrase here'
+            onChange={(e) => this.setState({ passphrase: e.target.value })}
+            value={passphrase}
+            autoFocus
+          />
+          {showKey
+            ? <FaEyeSlash className={loginStyles.viewKey} onClick={this.toggleKeyVisibility} />
+            : <FaEye className={loginStyles.viewKey} onClick={this.toggleKeyVisibility} />
+          }
+          <input
+            type='password'
+            placeholder='Enter your encrypted key here'
+            onChange={(e) => this.setState({ wif: e.target.value })}
+            value={wif}
+          />
+        </div>
+        <div>
+          <button
+            className={classNames('loginButton', { disabled: loginButtonDisabled })}
+            onClick={() => loginNep2(passphrase, wif, history)}
+            disabled={loginButtonDisabled}>Login</button>
+          <HomeButtonLink />
+        </div>
+      </Page>
     )
   }
 }

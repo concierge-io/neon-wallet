@@ -1,11 +1,16 @@
 // @flow
 import React, { Component } from 'react'
-
+import NetworkSwitch from '../NetworkSwitch'
+import Page from '../../components/Page'
 import HomeButtonLink from '../../components/HomeButtonLink'
 
 type Props = {
-  NEO: number,
-  loadWalletData: Function,
+  address: string,
+  neo: number,
+  rpx: number,
+  net: NetworkType,
+  initiateGetBalance: Function,
+  updateRpxBalance: Function,
   participateInSale: Function,
   refreshTokenBalance: Function
 }
@@ -22,8 +27,11 @@ export default class TokenSale extends Component<Props, State> {
   }
 
   componentDidMount () {
-    const { loadWalletData } = this.props
-    loadWalletData()
+    const { scriptHash } = this.state
+    const { initiateGetBalance, refreshTokenBalance, updateRpxBalance, net, address } = this.props
+    updateRpxBalance(0)
+    initiateGetBalance(net, address)
+    refreshTokenBalance(scriptHash, true)
   }
 
   participateInSale = () => {
@@ -38,29 +46,40 @@ export default class TokenSale extends Component<Props, State> {
   }
 
   render () {
-    const { NEO, refreshTokenBalance } = this.props
+    const { neo, rpx, refreshTokenBalance } = this.props
     const { neoToSend, scriptHash } = this.state
     const refreshTokenBalanceButtonDisabled = !scriptHash
     const submitSaleButtonDisabled = !neoToSend || !scriptHash
 
     return (
-      <div id='tokenSale'>
+      <Page id='tokenSale'>
+        <NetworkSwitch />
         <div className='description'>Participate in Token Sale</div>
         <div className='warning'>
           <b>WARNING:</b> Be very careful with how you participate in a sale! This interface may not work for all sales! Submitting NEO multiple times to a sale may result in lost funds
-        or a delayed refund depending on the policy of the sale. CoZ is not responsible for any mistakes you make participating in
+        or a delayed refund depending on the policy of the sale. Concierge is not responsible for any mistakes you make participating in
         a sale. After submitting to a sale, you will need to <b>WAIT SOME TIME</b> for the balance of tokens to refresh. You can click
         "Refresh Token" after 10s if you still do not see anything. It is also possible that nodes may not update properly with your token balance,
-        so <b>THINK VERY CAREFULLY</b> before resubmitting to a sale. Do not click "Submit" twice. CoZ does not endorse any token sale!
+        so <b>THINK VERY CAREFULLY</b> before resubmitting to a sale. Do not click "Submit" twice. Concierge does not endorse any token sale other than the CGE token!
         </div>
         <div className='settingsForm'>
           <div className='settingsItem'>
             <div className='itemTitle'>NEO Balance:</div>
-            <div>{NEO}</div>
+            <div>{neo}</div>
           </div>
           <div className='settingsItem'>
             <div className='itemTitle'>Token Balance:</div>
-            <div />
+            <div>{rpx}</div>
+          </div>
+          <div className='settingsItem'>
+            <div className='itemTitle'>Script Hash:</div>
+            <input
+              autoFocus
+              type='text'
+              className='scriptHash'
+              value={scriptHash}
+              onChange={(e) => this.setState({ scriptHash: e.target.value })}
+            />
           </div>
           <div className='settingsItem'>
             <div className='itemTitle'>Amount of NEO to Send:</div>
@@ -82,7 +101,7 @@ export default class TokenSale extends Component<Props, State> {
             disabled={refreshTokenBalanceButtonDisabled}>Refresh Token Balance</button>
         </div>
         <HomeButtonLink />
-      </div>
+      </Page>
     )
   }
 }

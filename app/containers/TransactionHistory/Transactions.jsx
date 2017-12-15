@@ -1,12 +1,10 @@
 // @flow
 import React from 'react'
-import classNames from 'classnames'
-
 import { ASSETS } from '../../core/constants'
-import { openExplorerTx } from '../../core/explorer'
+import { openExplorer } from '../../core/explorer'
 import { formatGAS, formatNEO } from '../../core/formatters'
-
 import styles from './Transactions.scss'
+import classNames from 'classnames'
 
 type Props = {
   net: NetworkType,
@@ -28,7 +26,7 @@ const Transactions = ({ transactions, net, explorer }: Props) => {
             <li key={t.txid} className={styles.row}>
               <div
                 className={classNames(styles.txid, 'txid')}
-                onClick={() => openExplorerTx(net, explorer, t.txid)}>
+                onClick={() => openExplorer(net, explorer, t.txid)}>
                 {t.txid.substring(0, 32)}
               </div>
               <div className={classNames(styles.amount, 'amount')}>{formatAmount} {t.type}</div>

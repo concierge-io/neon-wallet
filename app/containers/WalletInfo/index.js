@@ -1,37 +1,26 @@
 // @flow
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-
-import { showErrorNotification, showSuccessNotification } from '../../modules/notifications'
+import WalletInfo from './WalletInfo'
+import { initiateGetBalance, getNeo, getGas, getNeoPrice, getGasPrice } from '../../modules/wallet'
+import { showErrorNotification, showSuccessNotification, showInfoNotification } from '../../modules/notifications'
 import { getAddress } from '../../modules/account'
 import { getNetwork } from '../../modules/metadata'
-import {
-  loadWalletData,
-  getNEO,
-  getGAS,
-  getTokens
-} from '../../modules/wallet'
-import { getNEOPrice, getGASPrice, getCurrency } from '../../modules/price'
-import { showModal } from '../../modules/modal'
 
-import WalletInfo from './WalletInfo'
-
-const mapStateToProps = (state: Object) => ({
-  NEO: getNEO(state),
-  GAS: getGAS(state),
+const mapStateToProps = (state) => ({
+  neo: getNeo(state),
+  gas: getGas(state),
   address: getAddress(state),
   net: getNetwork(state),
-  neoPrice: getNEOPrice(state),
-  gasPrice: getGASPrice(state),
-  tokens: getTokens(state),
-  currencyCode: getCurrency(state)
+  neoPrice: getNeoPrice(state),
+  gasPrice: getGasPrice(state)
 })
 
 const actionCreators = {
-  loadWalletData,
+  initiateGetBalance,
   showErrorNotification,
   showSuccessNotification,
-  showModal
+  showInfoNotification
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators(actionCreators, dispatch)

@@ -3,7 +3,6 @@ import configureStore from 'redux-mock-store'
 import { Provider } from 'react-redux'
 import thunk from 'redux-thunk'
 import { shallow, mount } from 'enzyme'
-
 import { setTransactionHistory } from '../../app/modules/wallet'
 import { setIsLoadingTransaction } from '../../app/modules/transactions'
 
@@ -36,7 +35,7 @@ const transactions = {
       },
       {
         type: 'GAS',
-        amount: '0.40000000',
+        amount: '0.4000000',
         txid: '76938980'
       }
     ]
@@ -83,7 +82,7 @@ describe('TransactionHistory', () => {
     const { wrapper } = setup(initialState, false)
 
     const columnHeader = wrapper.find('.columnHeader')
-    expect(columnHeader.text()).toEqual('Transaction History ')
+    expect(columnHeader.text()).toEqual('Transaction History')
 
     const transactionList = wrapper.find('#transactionList')
     expect(transactionList.children().length).toEqual(0)

@@ -3,11 +3,10 @@ import React, { Component } from 'react'
 import { forEach, map } from 'lodash'
 import fs from 'fs'
 import storage from 'electron-json-storage'
-
-import HomeButtonLink from '../../components/HomeButtonLink'
-import { EXPLORERS, MODAL_TYPES, CURRENCIES } from '../../core/constants'
-
 import Delete from 'react-icons/lib/md/delete'
+import Page from '../../components/Page'
+import HomeButtonLink from '../../components/HomeButtonLink'
+import { EXPLORER, MODAL_TYPES } from '../../core/constants'
 
 const { dialog } = require('electron').remote
 
@@ -15,8 +14,6 @@ type Props = {
   setKeys: Function,
   setBlockExplorer: Function,
   explorer: string,
-  setCurrency: Function,
-  currency: string,
   wallets: any,
   showModal: Function
 }
@@ -27,8 +24,7 @@ type State = {
 
 export default class Settings extends Component<Props, State> {
   state = {
-    explorer: this.props.explorer,
-    currency: this.props.currency
+    explorer: this.props.explorer
   }
 
   componentDidMount () {
@@ -37,6 +33,7 @@ export default class Settings extends Component<Props, State> {
     storage.get('keys', (error, data) => {
       setKeys(data)
     })
+    this.loadSettings()
   }
 
   saveKeyRecovery = (keys: Object) => {
@@ -85,21 +82,28 @@ export default class Settings extends Component<Props, State> {
     })
   }
 
-  componentWillReceiveProps (nextProps: Props) {
-    storage.set('settings', {
-      currency: nextProps.currency,
-      blockExplorer: nextProps.explorer
+  saveSettings = (settings: Object) => {
+    storage.set('settings', settings)
+  }
+
+  loadSettings = () => {
+    const { setBlockExplorer } = this.props
+    // eslint-disable-next-line
+    storage.get('settings', (error, settings) => {
+      if (settings.blockExplorer !== null && settings.blockExplorer !== undefined) {
+        setBlockExplorer(settings.blockExplorer)
+      }
     })
   }
 
-  updateExplorerSettings = (e: Object) => {
+  updateSettings = (e: Object) => {
     const { setBlockExplorer } = this.props
-    setBlockExplorer(e.target.value)
-  }
-
-  updateCurrencySettings = (e: Object) => {
-    const { setCurrency } = this.props
-    setCurrency(e.target.value)
+    const explorer = e.target.value
+    this.setState({
+      explorer
+    })
+    this.saveSettings({ blockExplorer: explorer })
+    setBlockExplorer(explorer)
   }
 
   deleteWallet = (key: string) => {
@@ -119,26 +123,18 @@ export default class Settings extends Component<Props, State> {
   }
 
   render () {
-    const { wallets, explorer, currency } = this.props
-
+    const { wallets } = this.props
+    const { explorer } = this.state
     return (
-      <div id='settings'>
+      <Page id='settings'>
         <div className='description'>Manage your Neon wallet keys and settings</div>
         <div className='settingsForm'>
           <div className='settingsItem'>
             <div className='itemTitle'>Block Explorer</div>
-            <select value={explorer} onChange={this.updateExplorerSettings}>
-              {Object.keys(EXPLORERS).map((explorer: ExplorerType) =>
-                <option key={explorer} value={EXPLORERS[explorer]}>{EXPLORERS[explorer]}</option>)
-              }
-            </select>
-          </div>
-          <div className='settingsItem'>
-            <div className='itemTitle'>Currency</div>
-            <select value={currency} onChange={this.updateCurrencySettings}>
-              {Object.keys(CURRENCIES).map((currencyCode: string) =>
-                <option value={currencyCode} key={currencyCode}>{currencyCode.toUpperCase()}</option>
-              )}
+            <select value={explorer} onChange={this.updateSettings}>
+              <option value={EXPLORER.NEO_TRACKER}>Neotracker</option>
+              <option value={EXPLORER.NEO_SCAN}>Neoscan</option>
+              <option value={EXPLORER.ANT_CHAIN}>Antchain</option>
             </select>
           </div>
           <div className='settingsItem'>
@@ -160,7 +156,7 @@ export default class Settings extends Component<Props, State> {
           <button onClick={this.loadKeyRecovery}>Load key recovery file</button>
         </div>
         <HomeButtonLink />
-      </div>
+      </Page>
     )
   }
 }

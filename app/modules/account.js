@@ -1,14 +1,11 @@
 // @flow
-import { wallet } from 'neon-js'
-
-import { showErrorNotification, showInfoNotification, hideNotification } from './notifications'
-
+import { verifyPrivateKey, validatePassphrase } from '../core/wallet'
+import { getAccountFromWIFKey, getPublicKeyEncoded, getAccountFromPublicKey, decryptWIF } from 'neon-js'
 import commNode from '../ledger/ledger-comm-node'
-import { ledgerNanoSCreateSignatureAsync } from '../ledger/ledgerNanoS'
-
-import { validatePassphraseLength } from '../core/wallet'
-import { BIP44_PATH, ROUTES, FINDING_LEDGER_NOTICE } from '../core/constants'
+import { BIP44_PATH, ROUTES } from '../core/constants'
 import asyncWrap from '../core/asyncHelper'
+import { ledgerNanoSCreateSignatureAsync } from '../ledger/ledgerNanoS'
+import { showErrorNotification, showInfoNotification, hideNotification } from './notifications'
 
 // Constants
 export const LOGIN = 'LOGIN'
@@ -17,7 +14,6 @@ export const SET_KEYS = 'SET_KEYS'
 export const HARDWARE_DEVICE_INFO = 'HARDWARE_DEVICE_INFO'
 export const HARDWARE_PUBLIC_KEY_INFO = 'HARDWARE_PUBLIC_KEY_INFO'
 export const HARDWARE_PUBLIC_KEY = 'HARDWARE_PUBLIC_KEY'
-export const HARDWARE_LOGIN = 'HARDWARE_LOGIN'
 
 // Actions
 export function login (wif: string) {
@@ -47,24 +43,20 @@ export function setKeys (accountKeys: any) {
   }
 }
 
-export const loginNep2 = (passphrase: string, encryptedWIF: string, history: Object) => (dispatch: DispatchType) => {
+export const loginNep2 = (passphrase: string, wif: string, history: Object) => (dispatch: DispatchType) => {
   const dispatchError = (message: string) => dispatch(showErrorNotification({ message }))
 
-  if (!validatePassphraseLength(passphrase)) {
+  if (!validatePassphrase(passphrase)) {
     return dispatchError('Passphrase too short')
-  }
-
-  if (!wallet.isNEP2(encryptedWIF)) {
-    return dispatchError('That is not a valid encrypted key')
   }
 
   const infoNotificationId = dispatch(showInfoNotification({ message: 'Decrypting encoded key...' }))
 
-  setTimeout(() => {
+  setTimeout(async () => {
     try {
-      const wif = wallet.decrypt(encryptedWIF, passphrase)
+      const [_err, responseWif] = await asyncWrap(decryptWIF(wif, passphrase)) // eslint-disable-line
       dispatch(hideNotification(infoNotificationId))
-      dispatch(login(wif))
+      dispatch(login(responseWif))
       return history.push(ROUTES.DASHBOARD)
     } catch (e) {
       return dispatchError('Wrong passphrase or invalid encrypted key')
@@ -93,15 +85,8 @@ export function hardwarePublicKey (publicKey: string) {
   }
 }
 
-export function isHardwareLogin (isHardwareLogin: boolean) {
-  return {
-    type: HARDWARE_LOGIN,
-    payload: { isHardwareLogin }
-  }
-}
-
 export const loginWithPrivateKey = (wif: string, history: Object, route?: RouteType) => (dispatch: DispatchType) => {
-  if (wallet.isWIF(wif)) {
+  if (verifyPrivateKey(wif)) {
     dispatch(login(wif))
     return history.push(route || ROUTES.DASHBOARD)
   } else {
@@ -111,27 +96,17 @@ export const loginWithPrivateKey = (wif: string, history: Object, route?: RouteT
 
 // Reducer that manages account state (account now = private key)
 export const ledgerNanoSGetInfoAsync = () => async (dispatch: DispatchType) => {
-  const dispatchError = (message: string, deviceInfoMsg: boolean = true) => {
-    dispatch(isHardwareLogin(false))
-    dispatch(hardwarePublicKey(null))
-    if (deviceInfoMsg) {
-      dispatch(hardwarePublicKeyInfo(null))
-      return dispatch(hardwareDeviceInfo(message))
-    } else {
-      return dispatch(hardwarePublicKeyInfo(message))
-    }
-  }
-  dispatch(hardwareDeviceInfo(FINDING_LEDGER_NOTICE))
+  dispatch(hardwareDeviceInfo('Looking for USB Devices'))
   let [err, result] = await asyncWrap(commNode.list_async())
-  if (err) {
-    return dispatchError(`Finding USB Error: ${err}. ${FINDING_LEDGER_NOTICE}`)
-  }
+  if (err) return dispatch(hardwareDeviceInfo(`Finding USB Error: ${err}. Connect device and try again.`))
   if (result.length === 0) {
-    return dispatchError(`USB Failure: No device found. ${FINDING_LEDGER_NOTICE}`)
+    dispatch(hardwarePublicKeyInfo(''))
+    return dispatch(hardwareDeviceInfo('USB Failure: No device found. Connect device and try again.'))
   } else {
     let [err, comm] = await asyncWrap(commNode.create_async())
     if (err) {
-      return dispatchError(`Finding USB Error: ${err}. ${FINDING_LEDGER_NOTICE}`)
+      dispatch(hardwarePublicKeyInfo(''))
+      return dispatch(hardwareDeviceInfo(`Finding USB Error: ${err}. Connect device and try again.`))
     }
 
     const deviceInfo = comm.device.getDeviceInfo()
@@ -140,12 +115,12 @@ export const ledgerNanoSGetInfoAsync = () => async (dispatch: DispatchType) => {
   }
   [err, result] = await asyncWrap(commNode.list_async())
   if (result.length === 0) {
-    return dispatchError('Hardware Device Error. Login to NEO App and try again', false)
+    return dispatch(hardwarePublicKeyInfo('Hardware Device Error. Login to NEO App and try again'))
   } else {
     let [err, comm] = await asyncWrap(commNode.create_async())
     if (err) {
       console.log(`Public Key Comm Init Error: ${err}`)
-      return dispatchError('Hardware Device Error. Login to NEO App and try again', false)
+      return dispatch(hardwarePublicKeyInfo('Hardware Device Error. Login to NEO App and try again'))
     }
 
     let message = Buffer.from(`8004000000${BIP44_PATH}`, 'hex')
@@ -154,30 +129,28 @@ export const ledgerNanoSGetInfoAsync = () => async (dispatch: DispatchType) => {
     if (error) {
       comm.device.close() // NOTE: do we need this close here - what about the other errors that do not have it at the moment
       if (error === 'Invalid status 28160') {
-        return dispatchError('NEO App does not appear to be open, request for private key returned error 28160.', false)
+        return dispatch(hardwarePublicKeyInfo('NEO App does not appear to be open, request for private key returned error 28160.'))
       } else {
         console.log(`Public Key Comm Messaging Error: ${error}`)
-        return dispatchError('Hardware Device Error. Login to NEO App and try again', false)
+        return dispatch(hardwarePublicKeyInfo('Hardware Device Error. Login to NEO App and try again'))
       }
     }
     comm.device.close()
-    dispatch(isHardwareLogin(true))
     dispatch(hardwarePublicKey(response.substring(0, 130)))
     return dispatch(hardwarePublicKeyInfo('Success. NEO App Found on Hardware Device. Click Button Above to Login'))
   }
 }
 
 // State Getters
-export const getWIF = (state: Object) => state.account.wif
-export const getAddress = (state: Object) => state.account.address
-export const getLoggedIn = (state: Object) => state.account.loggedIn
-export const getRedirectUrl = (state: Object) => state.account.redirectUrl
-export const getAccountKeys = (state: Object) => state.account.accountKeys
-export const getSigningFunction = (state: Object) => state.account.signingFunction
-export const getPublicKey = (state: Object) => state.account.publicKey
-export const getHardwareDeviceInfo = (state: Object) => state.account.hardwareDeviceInfo
-export const getHardwarePublicKeyInfo = (state: Object) => state.account.hardwarePublicKeyInfo
-export const getIsHardwareLogin = (state: Object) => state.account.isHardwareLogin
+export const getWif = (state) => state.account.wif
+export const getAddress = (state) => state.account.address
+export const getLoggedIn = (state) => state.account.loggedIn
+export const getRedirectUrl = (state) => state.account.redirectUrl
+export const getAccountKeys = (state) => state.account.accountKeys
+export const getSigningFunction = (state) => state.account.signingFunction
+export const getPublicKey = (state) => state.account.publicKey
+export const getHardwareDeviceInfo = (state) => state.account.hardwareDeviceInfo
+export const getHardwarePublicKeyInfo = (state) => state.account.hardwarePublicKeyInfo
 
 const initialState = {
   wif: null,
@@ -187,22 +160,21 @@ const initialState = {
   accountKeys: [],
   signingFunction: null,
   publicKey: null,
-  isHardwareLogin: false,
   hardwareDeviceInfo: null,
   hardwarePublicKeyInfo: null
 }
 
-export default (state: Object = initialState, action: ReduxAction) => {
+export default (state: Object = initialState, action: Object) => {
   switch (action.type) {
     case LOGIN:
       const { signingFunction, wif } = action.payload
       let loadAccount: Object | number
       try {
         if (signingFunction) {
-          const publicKeyEncoded = wallet.getPublicKeyEncoded(state.publicKey)
-          loadAccount = new wallet.Account(publicKeyEncoded)
+          const publicKeyEncoded = getPublicKeyEncoded(state.publicKey)
+          loadAccount = getAccountFromPublicKey(publicKeyEncoded)
         } else {
-          loadAccount = new wallet.Account(wif)
+          loadAccount = getAccountFromWIFKey(wif)
         }
       } catch (e) {
         console.log(e.stack)
@@ -229,8 +201,7 @@ export default (state: Object = initialState, action: ReduxAction) => {
         address: null,
         loggedIn: false,
         signingFunction: null,
-        publicKey: null,
-        isHardwareLogin: false
+        publicKey: null
       }
     case SET_KEYS:
       const { accountKeys } = action.payload
@@ -243,12 +214,6 @@ export default (state: Object = initialState, action: ReduxAction) => {
       return {
         ...state,
         hardwareDeviceInfo
-      }
-    case HARDWARE_LOGIN:
-      const { isHardwareLogin } = action.payload
-      return {
-        ...state,
-        isHardwareLogin
       }
     case HARDWARE_PUBLIC_KEY_INFO:
       const { hardwarePublicKeyInfo } = action.payload

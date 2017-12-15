@@ -1,11 +1,9 @@
 // @flow
 import React, { Component } from 'react'
-
-import HomeButtonLink from '../../components/HomeButtonLink'
-
-import { ROUTES, FINDING_LEDGER_NOTICE } from '../../core/constants'
-
+import Page from '../../components/Page'
 import loginStyles from '../../styles/login.scss'
+import HomeButtonLink from '../../components/HomeButtonLink'
+import { ROUTES } from '../../core/constants'
 
 type Props = {
   ledgerNanoSGetLogin: Function,
@@ -15,33 +13,14 @@ type Props = {
   publicKey: string,
   history: Object
 }
-type State = {
-  intervalId: number
-}
 
-export default class LoginLedgerNanoS extends Component<Props, State> {
-  state = {
-    intervalId: ''
-  }
-
+export default class LoginLedgerNanoS extends Component<Props> {
   componentDidMount () {
-    const { ledgerNanoSGetInfoAsync } = this.props
-    const intervalId = setInterval(async () => {
-      await ledgerNanoSGetInfoAsync()
-    }, 1000)
-    this.setState({ intervalId })
+    this._componentDidMount(this.props.ledgerNanoSGetInfoAsync)
   }
 
-  shouldComponentUpdate (nextProps) {
-    const { publicKey, hardwarePublicKeyInfo, hardwareDeviceInfo } = this.props
-    if (nextProps.publicKey !== publicKey ||
-        nextProps.hardwarePublicKeyInfo !== hardwarePublicKeyInfo ||
-        (nextProps.hardwareDeviceInfo === FINDING_LEDGER_NOTICE && hardwareDeviceInfo === null)) return true
-    return false
-  }
-
-  componentWillUnmount () {
-    clearInterval(this.state.intervalId)
+  _componentDidMount = async (getInfoAsync: Function) => {
+    await getInfoAsync()
   }
 
   onLedgerNanoSChange = () => {
@@ -55,7 +34,7 @@ export default class LoginLedgerNanoS extends Component<Props, State> {
   render () {
     const { hardwareDeviceInfo, hardwarePublicKeyInfo, publicKey } = this.props
     return (
-      <div id='loginPage' className={loginStyles.loginPage}>
+      <Page id='loginPage' className={loginStyles.loginPage}>
         <div className={loginStyles.title}>Login using the Ledger Nano S:</div>
         <div className={loginStyles.loginForm}>
           <div>
@@ -65,7 +44,7 @@ export default class LoginLedgerNanoS extends Component<Props, State> {
           <p>{hardwareDeviceInfo}</p>
           <p>{hardwarePublicKeyInfo}</p>
         </div>
-      </div>
+      </Page>
     )
   }
 }

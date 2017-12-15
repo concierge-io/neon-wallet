@@ -1,12 +1,13 @@
 // @flow
 import React from 'react'
+import type { Children } from 'react'
 import ReactModal from 'react-modal'
 import Close from 'react-icons/lib/md/close'
 import styles from './BaseModal.scss'
 
 type Props = {
     title: string,
-    children: React$Node,
+    children: Children,
     hideModal: Function,
     width?: string,
     height?: string,
@@ -14,11 +15,10 @@ type Props = {
     style: {
       content: Object,
       overlay: Object
-    },
-    onAfterOpen?: Function
+    }
 }
 
-const BaseModal = ({ hideModal, title, children, width, height, className, style, onAfterOpen }: Props) => (
+const BaseModal = ({ hideModal, title, children, width, height, className, style }: Props) => (
   <ReactModal
     isOpen
     onRequestClose={hideModal}
@@ -40,7 +40,6 @@ const BaseModal = ({ hideModal, title, children, width, height, className, style
       }
     }}
     className={className}
-    onAfterOpen={onAfterOpen}
   >
     <div className={styles.modalHeader}>
       <div className={styles.modalHeaderTitle}>{title}</div>

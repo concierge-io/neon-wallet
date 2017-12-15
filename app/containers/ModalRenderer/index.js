@@ -1,12 +1,10 @@
 // @flow
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-
+import ModalRenderer from './ModalRenderer'
 import { getModalType, getModalProps, hideModal } from '../../modules/modal'
 
-import ModalRenderer from './ModalRenderer'
-
-const mapStateToProps = (state: Object) => ({
+const mapStateToProps = (state) => ({
   modalType: getModalType(state),
   modalProps: getModalProps(state)
 })
