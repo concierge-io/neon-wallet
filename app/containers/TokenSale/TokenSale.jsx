@@ -68,7 +68,7 @@ export default class TokenSale extends Component<Props, State> {
             <div>{neo}</div>
           </div>
           <div className='settingsItem'>
-            <div className='itemTitle'>Token Balance:</div>
+            <div className='itemTitle'>CGE Balance:</div>
             <div>{rpx}</div>
           </div>
           <div className='settingsItem'>
@@ -98,7 +98,7 @@ export default class TokenSale extends Component<Props, State> {
           <button
             className={refreshTokenBalanceButtonDisabled ? 'disabled' : ''}
             onClick={() => refreshTokenBalance(scriptHash)}
-            disabled={refreshTokenBalanceButtonDisabled}>Refresh Token Balance</button>
+            disabled={refreshTokenBalanceButtonDisabled}>Refresh CGE Balance</button>
         </div>
         <HomeButtonLink />
       </Page>
